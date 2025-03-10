@@ -1,0 +1,86 @@
+Hard Level: Develop a ticket booking system with synchronized threads to ensure no double booking of seats. Use thread priorities to simulate VIP bookings being processed first.
+
+
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.Scanner;
+
+class TicketBooking {
+    private int availableTickets;
+    private ReentrantLock lock = new ReentrantLock();
+
+    public TicketBooking(int availableTickets) {
+        this.availableTickets = availableTickets;
+    }
+
+    public boolean bookTicket(int ticketsToBook, String customerName, int priority) {
+        lock.lock();
+        try {
+            if (availableTickets >= ticketsToBook) {
+                availableTickets -= ticketsToBook;
+                System.out.println(customerName + " booked " + ticketsToBook + " tickets. Remaining tickets: " + availableTickets);
+                return true;
+            } else {
+                System.out.println(customerName + " failed to book tickets. Not enough tickets available.");
+                return false;
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getAvailableTickets() {
+        return availableTickets;
+    }
+}
+
+class BookingThread extends Thread {
+    private TicketBooking ticketBooking;
+    private int ticketsToBook;
+    private String customerName;
+
+    public BookingThread(TicketBooking ticketBooking, int ticketsToBook, String customerName) {
+        this.ticketBooking = ticketBooking;
+        this.ticketsToBook = ticketsToBook;
+        this.customerName = customerName;
+    }
+
+    @Override
+    public void run() {
+        ticketBooking.bookTicket(ticketsToBook, customerName, getPriority());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter total available tickets: ");
+        int totalTickets = scanner.nextInt();
+
+        TicketBooking ticketBooking = new TicketBooking(totalTickets);
+
+        // Create booking threads
+        BookingThread vipThread = new BookingThread(ticketBooking, 5, "VIP Customer");
+        vipThread.setPriority(Thread.MAX_PRIORITY);
+
+        BookingThread normalThread1 = new BookingThread(ticketBooking, 3, "Normal Customer 1");
+        normalThread1.setPriority(Thread.NORM_PRIORITY);
+
+        BookingThread normalThread2 = new BookingThread(ticketBooking, 2, "Normal Customer 2");
+        normalThread2.setPriority(Thread.NORM_PRIORITY);
+
+        // Start threads
+        vipThread.start();
+        normalThread1.start();
+        normalThread2.start();
+
+        try {
+            vipThread.join();
+            normalThread1.join();
+            normalThread2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Final available tickets: " + ticketBooking.getAvailableTickets());
+    }
+}

@@ -1,0 +1,107 @@
+Medium Level: Create a program to collect and store all the cards to assist the users in finding all the cards in a given symbol using Collection interface.
+
+
+
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+class Card {
+    char symbol;
+    int number;
+
+    public Card(char symbol, int number) {
+        this.symbol = symbol;
+        this.number = number;
+    }
+
+    public char getSymbol() {
+        return symbol;
+    }
+
+    public int getNumber() {
+        return number;
+    }
+
+    @Override
+    public String toString() {
+        return symbol + " " + number;
+    }
+}
+
+public class CardCollector {
+    static Map<Character, ArrayList<Card>> cardMap = new HashMap<>();
+    static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice;
+        do {
+            System.out.println("1. Add Card");
+            System.out.println("2. Display Cards by Symbol");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline left-over
+
+            switch (choice) {
+                case 1:
+                    addCard();
+                    break;
+                case 2:
+                    displayCardsBySymbol();
+                    break;
+                case 3:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 3);
+    }
+
+    static void addCard() {
+        System.out.print("Enter card symbol (e.g., H, D, C, S): ");
+        char symbol = scanner.nextLine().charAt(0);
+        System.out.print("Enter card number: ");
+        int number = scanner.nextInt();
+        scanner.nextLine(); // Consume newline left-over
+
+        Card card = new Card(symbol, number);
+
+        if (!cardMap.containsKey(symbol)) {
+            ArrayList<Card> list = new ArrayList<>();
+            list.add(card);
+            cardMap.put(symbol, list);
+        } else {
+            cardMap.get(symbol).add(card);
+        }
+        System.out.println("Card added successfully!");
+    }
+
+    static void displayCardsBySymbol() {
+        System.out.print("Enter symbol to display cards (e.g., H, D, C, S), or press Enter to show all: ");
+        String input = scanner.nextLine();
+        if (input.isEmpty()) {
+            for (Map.Entry<Character, ArrayList<Card>> entry : cardMap.entrySet()) {
+                System.out.println("Cards in symbol " + entry.getKey() + ":");
+                for (Card card : entry.getValue()) {
+                    System.out.println(card);
+                }
+                System.out.println();
+            }
+        } else {
+            char symbol = input.charAt(0);
+            if (cardMap.containsKey(symbol)) {
+                System.out.println("Cards in symbol " + symbol + ":");
+                for (Card card : cardMap.get(symbol)) {
+                    System.out.println(card);
+                }
+            } else {
+                System.out.println("No cards found for symbol " + symbol);
+            }
+        }
+    }
+}
